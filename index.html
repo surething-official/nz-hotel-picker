@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏨 新西兰住宿选择 · 4.30-5.9</title>
+<style>
+  :root {
+    --primary: #2563eb;
+    --primary-light: #dbeafe;
+    --accent: #f59e0b;
+    --bg: #f8fafc;
+    --card-bg: #ffffff;
+    --text: #1e293b;
+    --text-light: #64748b;
+    --success: #10b981;
+    --border: #e2e8f0;
+    --selected-border: #2563eb;
+    --selected-bg: #eff6ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding-bottom: 100px;
+  }
+  .hero {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #0ea5e9 100%);
+    color: white;
+    padding: 40px 20px 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="50" font-size="60" opacity="0.05">🏔️</text></svg>') repeat;
+    background-size: 80px;
+  }
+  .hero h1 { font-size: 28px; margin-bottom: 8px; position: relative; }
+  .hero p { font-size: 15px; opacity: 0.9; position: relative; }
+  .hero .trip-info {
+    display: flex; justify-content: center; gap: 20px; margin-top: 15px;
+    font-size: 13px; opacity: 0.85; position: relative;
+    flex-wrap: wrap;
+  }
+  .hero .trip-info span { display: flex; align-items: center; gap: 4px; }
+
+  .container { max-width: 800px; margin: 0 auto; padding: 0 16px; }
+
+  .progress-bar {
+    background: white;
+    border-radius: 16px;
+    margin: -20px 16px 20px;
+    padding: 16px 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    position: relative;
+    z-index: 10;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .progress-bar .label { font-size: 14px; color: var(--text-light); margin-bottom: 8px; }
+  .progress-bar .bar-track {
+    height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;
+  }
+  .progress-bar .bar-fill {
+    height: 100%; background: linear-gradient(90deg, var(--primary), var(--success));
+    border-radius: 4px; transition: width 0.5s ease;
+  }
+  .progress-bar .count { font-size: 13px; color: var(--text-light); margin-top: 6px; text-align: right; }
+
+  .night-section {
+    margin: 24px auto;
+    max-width: 800px;
+    padding: 0 16px;
+  }
+  .night-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 16px;
+  }
+  .night-badge {
+    background: var(--primary);
+    color: white;
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .night-title h2 { font-size: 20px; font-weight: 700; }
+  .night-title .date { font-size: 13px; color: var(--text-light); }
+
+  .hotel-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  .hotel-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); transform: translateY(-2px); }
+  .hotel-card.selected {
+    border-color: var(--selected-border);
+    background: var(--selected-bg);
+  }
+  .hotel-card.selected .select-btn {
+    background: var(--success);
+    color: white;
+  }
+  .hotel-card.alt { opacity: 0.85; }
+  .hotel-card.alt:hover { opacity: 1; }
+
+  .hotel-images {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    height: 200px;
+  }
+  .hotel-images::-webkit-scrollbar { display: none; }
+  .hotel-images img {
+    width: 100%;
+    min-width: 100%;
+    height: 200px;
+    object-fit: cover;
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+  .hotel-images .placeholder {
+    width: 100%;
+    min-width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    flex-shrink: 0;
+  }
+  .img-dots {
+    display: flex; justify-content: center; gap: 4px;
+    padding: 6px 0;
+  }
+  .img-dots .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #cbd5e1;
+  }
+  .img-dots .dot.active { background: var(--primary); }
+
+  .hotel-info { padding: 16px; }
+  .hotel-name-row {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 8px;
+  }
+  .hotel-name { font-size: 18px; font-weight: 700; flex: 1; }
+  .hotel-badge-tag {
+    background: var(--accent);
+    color: white;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+    margin-left: 8px;
+  }
+  .hotel-badge-tag.alt-tag {
+    background: #94a3b8;
+  }
+  .hotel-brand { font-size: 13px; color: var(--text-light); margin-bottom: 10px; }
+  .hotel-price {
+    font-size: 22px; font-weight: 800; color: var(--primary);
+    margin-bottom: 4px;
+  }
+  .hotel-price .unit { font-size: 13px; font-weight: 400; color: var(--text-light); }
+  .hotel-price .rmb { font-size: 13px; color: var(--text-light); font-weight: 400; margin-left: 6px; }
+
+  .hotel-features {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin: 12px 0;
+  }
+  .feature-tag {
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: #f1f5f9;
+    color: var(--text-light);
+  }
+  .feature-tag.highlight { background: #dcfce7; color: #166534; }
+
+  .hotel-desc {
+    font-size: 13px;
+    color: var(--text-light);
+    margin: 10px 0;
+    line-height: 1.7;
+  }
+
+  .hotel-links {
+    display: flex; gap: 8px; margin: 12px 0 0;
+    flex-wrap: wrap;
+  }
+  .hotel-link {
+    font-size: 12px;
+    color: var(--primary);
+    text-decoration: none;
+    padding: 4px 12px;
+    border: 1px solid var(--primary);
+    border-radius: 20px;
+    transition: all 0.2s;
+  }
+  .hotel-link:hover { background: var(--primary); color: white; }
+
+  .select-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    background: #f1f5f9;
+    color: var(--text-light);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    border-top: 1px solid var(--border);
+  }
+  .select-btn:hover { background: var(--primary-light); color: var(--primary); }
+
+  .warning-box {
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-size: 13px;
+    color: #92400e;
+  }
+  .warning-box strong { color: #78350f; }
+
+  .summary-float {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: white;
+    border-top: 1px solid var(--border);
+    padding: 12px 20px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .summary-float .info { font-size: 14px; }
+  .summary-float .info strong { color: var(--primary); }
+  .summary-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .summary-btn:hover { background: #1d4ed8; }
+  .summary-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+
+  .summary-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 2000;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .summary-modal.show { display: flex; }
+  .summary-content {
+    background: white;
+    border-radius: 20px 20px 0 0;
+    padding: 24px 20px 40px;
+    width: 100%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .summary-content h3 {
+    font-size: 20px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .summary-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .summary-item .night-label { color: var(--text-light); }
+  .summary-item .hotel-choice { font-weight: 600; }
+  .summary-item .not-selected { color: #f87171; font-style: italic; }
+  .summary-total {
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--primary-light);
+    border-radius: 12px;
+    text-align: center;
+  }
+  .summary-total .amount { font-size: 28px; font-weight: 800; color: var(--primary); }
+  .summary-total .per-person { font-size: 14px; color: var(--text-light); margin-top: 4px; }
+
+  .copy-btn {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px;
+    background: var(--success);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .copy-btn:hover { background: #059669; }
+  .close-modal {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: none; border: none;
+    font-size: 24px; cursor: pointer; color: var(--text-light);
+  }
+
+  @media (max-width: 480px) {
+    .hero h1 { font-size: 22px; }
+    .hotel-name { font-size: 16px; }
+    .hotel-price { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>🏨 新西兰住宿选择</h1>
+  <p>挑一挑，选好了我们就订！</p>
+  <div class="trip-info">
+    <span>📅 4月30日 — 5月9日</span>
+    <span>👩‍👩‍👧‍👧 4人 · 2间房/晚</span>
+    <span>🛡️ 正规酒店优先</span>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <div class="label">选择进度</div>
+  <div class="bar-track"><div class="bar-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="count" id="progressCount">已选 0/9 晚</div>
+</div>
+
+<div id="hotelSections"></div>
+
+<div class="summary-float">
+  <div class="info">
+    已选 <strong id="floatCount">0</strong>/9 晚
+    &nbsp;·&nbsp;
+    预估 <strong id="floatTotal">NZ$0</strong>
+  </div>
+  <button class="summary-btn" id="viewSummary" onclick="showSummary()">查看汇总</button>
+</div>
+
+<div class="summary-modal" id="summaryModal">
+  <div class="summary-content" style="position:relative;">
+    <button class="close-modal" onclick="hideSummary()">✕</button>
+    <h3>📋 住宿方案汇总</h3>
+    <div id="summaryList"></div>
+    <div class="summary-total">
+      <div>9 晚总价（2 间房）</div>
+      <div class="amount" id="summaryTotal">NZ$0</div>
+      <div class="per-person">人均 ≈ <span id="summaryPerPerson">NZ$0</span></div>
+    </div>
+    <button class="copy-btn" onclick="copySummary()">📋 复制方案发给大家</button>
+  </div>
+</div>
+
+<script>
+const HOTELS = [
+  {
+    night: 1, date: "4月30日", city: "奥克兰", cityEn: "Auckland",
+    options: [
+      {
+        name: "Cordis Auckland",
+        nameCn: "奥克兰朗廷酒店",
+        brand: "朗廷集团 · 五星",
+        price: 130, priceRange: "NZ$100-160",
+        rmb: "¥440-700",
+        recommended: true,
+        features: ["五星级", "泳池", "24H前台", "近天空塔"],
+        desc: "朗廷集团旗下，K Road 市中心黄金位置，642 间客房，步行可达天空塔和主要购物区。24 小时安保和前台服务。",
+        images: [
+          "https://www.cordishotels.com/content/dam/cordishotels/dynamicmedia/pacific/cordis_auckland_cdakl/homepage/cdakl_tasteofourland_promotion_midshot8_2024%20web.jpg"
+        ],
+        url: "https://www.cordishotels.com/en/auckland/",
+        booking: "https://www.booking.com/hotel/nz/langham-auckland.html"
+      },
+      {
+        name: "Grand Millennium Auckland",
+        nameCn: "奥克兰千禧大酒店",
+        brand: "千禧酒店集团",
+        price: 85, priceRange: "NZ$70-100",
+        rmb: "¥310-440",
+        features: ["连锁品牌", "452间房", "市中心"],
+        desc: "市中心大型连锁酒店，452间客房，设施齐全，性价比高。",
+        images: [],
+        url: "https://www.millenniumhotels.com/en/auckland/grand-millennium-auckland/",
+        booking: "https://www.booking.com/hotel/nz/grand-millennium-auckland.html"
+      }
+    ]
+  },
+  {
+    night: 2, date: "5月1日", city: "罗托鲁瓦", cityEn: "Rotorua",
+    options: [
+      {
+        name: "Millennium Hotel Rotorua",
+        nameCn: "罗托鲁瓦千禧酒店",
+        brand: "千禧酒店集团",
+        price: 266, priceRange: "NZ$266+",
+        rmb: "¥1,170+",
+        recommended: true,
+        features: ["湖景", "连锁品牌", "设施齐全", "近霍比屯"],
+        desc: "罗托鲁瓦湖畔位置绝佳，千禧集团旗下，距离霍比屯约 30 分钟车程。探索地热景点和毛利文化的理想大本营。",
+        images: [
+          "https://www.millenniumhotels.com/mhb-media/regions/newzealand/rotorua/millenniumhotelrotorua/gallery/images/club-room.jpg?rev=b82de17e8bc24693aa0485f9b1f24727",
+          "https://www.millenniumhotels.com/mhb-media/regions/newzealand/rotorua/millenniumhotelrotorua/gallery/images/club-lounge.jpg?rev=89eb8ca79b7542b2ba1dfa4ba81ad704",
+          "https://www.millenniumhotels.com/mhb-media/regions/newzealand/rotorua/millenniumhotelrotorua/gallery/images/dining.jpg?rev=e30b41eb85054d099569441eed6a9185"
+        ],
+        url: "https://www.millenniumhotels.com/en/rotorua/millennium-hotel-rotorua/",
+        booking: "https://www.booking.com/hotel/nz/millennium-rotorua.html"
+      },
+      {
+        name: "Rydges Rotorua",
+        nameCn: "罗托鲁瓦瑞吉酒店",
+        brand: "Rydges 连锁",
+        price: 135, priceRange: "NZ$129-141",
+        rmb: "¥570-620",
+        features: ["安全第一", "红木森林旁", "温泉近", "性价比高"],
+        desc: "安全评分罗托鲁瓦 #1，位于红木森林边缘，现代设计，室内泳池和温泉设施。",
+        images: [],
+        url: "https://www.rydges.com/accommodation/new-zealand/rotorua/",
+        booking: "https://www.booking.com/hotel/nz/rydges-rotorua.html"
+      }
+    ]
+  },
+  {
+    night: 3, date: "5月2日", city: "陶波", cityEn: "Taupo",
+    options: [
+      {
+        name: "Millennium Resort Manuels",
+        nameCn: "陶波千禧度假酒店",
+        brand: "千禧酒店集团 · 4.5星",
+        price: 190, priceRange: "NZ$180-203",
+        rmb: "¥790-890",
+        recommended: true,
+        features: ["度假酒店", "花园", "壁炉", "湖景"],
+        desc: "陶波湖畔度假酒店，千禧集团旗下，花园环绕，壁炉氛围，是连接北岛和南岛的完美中转站。",
+        images: [
+          "https://www.millenniumhotels.com/mhb-media/regions/newzealand/taupo/millenniumhotelandresortmanuelstaupo/generic/images/millennium-hotel-and-resort-manuels-taupo.jpg?rev=19e5cd7cf37d4119beef43905c572ca0",
+          "https://www.millenniumhotels.com/mhb-media/regions/newzealand/taupo/millenniumhotelandresortmanuelstaupo/generic/images/man-exterior.jpg?rev=193c1c289e684f4dafc42899f8738773",
+          "https://www.millenniumhotels.com/mhb-media/regions/newzealand/taupo/millenniumhotelandresortmanuelstaupo/generic/images/man-interior.jpg?rev=cd548b6b14804f8ea6eb4e0771f0a10f"
+        ],
+        url: "https://www.millenniumhotels.com/en/taupo/millennium-hotel-and-resort-manuels-taupo/",
+        booking: "https://www.booking.com/hotel/nz/millennium-resort-manuels-taupo.html"
+      },
+      {
+        name: "Hilton Lake Taupo",
+        nameCn: "陶波湖希尔顿酒店",
+        brand: "希尔顿集团 · 四星",
+        price: 440, priceRange: "NZ$430-450",
+        rmb: "¥1,890-1,980",
+        features: ["希尔顿", "一线湖景", "泳池", "免费停车"],
+        desc: "湖畔一线景观，希尔顿品牌保障，泳池+餐厅+停车全免。价格偏高但景色无敌。",
+        images: [],
+        url: "https://www.hilton.com/en/hotels/tpohnhi-hilton-lake-taupo/",
+        booking: "https://www.booking.com/hotel/nz/hilton-lake-taupo.html"
+      }
+    ]
+  },
+  {
+    night: 4, date: "5月3日", city: "惠灵顿", cityEn: "Wellington",
+    options: [
+      {
+        name: "Copthorne Oriental Bay",
+        nameCn: "惠灵顿东方湾酒店",
+        brand: "Millennium 旗下 · 四星",
+        price: 140, priceRange: "NZ$107-177",
+        rmb: "¥470-780",
+        recommended: true,
+        features: ["海港景观", "东方湾", "阳台", "位置绝佳"],
+        desc: "东方湾海滨大道上，新西兰首都最美海景之一。房间有阳台可看海港，步行可达 Te Papa 国家博物馆。",
+        images: [
+          "https://www.millenniumhotels.com/mhb-media/regions/newzealand/wellington/copthornehotelwellingtonorientalbay/generic/images/copthorne-hotel-wellington-oriental-bay-2.jpg?rev=7c291b0355e544de932ea3d2ca84b355",
+          "https://www.millenniumhotels.com/mhb-media/regions/newzealand/wellington/copthornehotelwellingtonorientalbay/generic/images/oby-exterior.jpg?rev=f35fa8d28a24478fa0a1260a7217dab3",
+          "https://www.millenniumhotels.com/mhb-media/regions/newzealand/wellington/copthornehotelwellingtonorientalbay/generic/images/oby-interior.jpg?rev=39320bf9693843d89acfdc8a395516f8"
+        ],
+        url: "https://www.millenniumhotels.com/en/wellington/copthorne-hotel-wellington-oriental-bay/",
+        booking: "https://www.booking.com/hotel/nz/copthorne-oriental-bay.html"
+      },
+      {
+        name: "ibis Wellington",
+        nameCn: "惠灵顿宜必思酒店",
+        brand: "Accor 雅高集团",
+        price: 63, priceRange: "NZ$57-69",
+        rmb: "¥250-300",
+        features: ["超高性价比", "市中心", "干净", "过渡首选"],
+        desc: "雅高集团旗下经济型品牌，市中心位置，只住一晚过渡的最佳选择。",
+        images: [],
+        url: "https://all.accor.com/hotel/B0K8/index.en.shtml",
+        booking: "https://www.booking.com/hotel/nz/ibis-wellington.html"
+      }
+    ]
+  },
+  {
+    night: 5, date: "5月4日", city: "蒂卡波湖", cityEn: "Lake Tekapo",
+    warn: "⚠️ 蒂卡波镇很小，房源有限，建议尽早预订！",
+    options: [
+      {
+        name: "Lake Tekapo Village Motel",
+        nameCn: "蒂卡波湖村汽车旅馆",
+        brand: "精品住宿 · 评分 9.4",
+        price: 172, priceRange: "NZ$165-179",
+        rmb: "¥725-790",
+        recommended: true,
+        features: ["步行到湖", "观星阳台", "9.4分", "干净"],
+        desc: "镇中心步行 1 分钟到湖边，阳台可观银河星空。Booking 上位置评分 9.4，清洁度 8.4，是蒂卡波最受好评的住宿之一。",
+        images: [],
+        url: "https://www.tekapomotel.co.nz/",
+        booking: "https://www.booking.com/hotel/nz/lake-tekapo-village-motel.html"
+      },
+      {
+        name: "The Chalet Boutique Motel",
+        nameCn: "蒂卡波精品小木屋",
+        brand: "精品 · 仅6间房",
+        price: 178, priceRange: "NZ$160-195",
+        rmb: "¥700-860",
+        features: ["全景山景", "精品体验", "35年老牌", "私密"],
+        desc: "只有 6 间独立设计客房，全景山景，主人有 35 年当地经验。私密精品体验。⚠️ 避开 Peppers Bluewater（2026年评论有卫生问题）",
+        images: [],
+        url: "https://www.booking.com/hotel/nz/chalet-boutique-motel.html",
+        booking: "https://www.booking.com/hotel/nz/chalet-boutique-motel.html"
+      }
+    ]
+  },
+  {
+    night: 6, date: "5月5日", city: "库克山", cityEn: "Mt Cook",
+    warn: "🔴 整个库克山区只有约 59 家住所，必须提前预订！",
+    options: [
+      {
+        name: "Mt Cook Lodge & Motels",
+        nameCn: "库克山小屋旅馆",
+        brand: "精品住宿 · 4星",
+        price: 190, priceRange: "NZ$182-203",
+        rmb: "¥800-890",
+        recommended: true,
+        features: ["山景房", "性价比高", "时尚干净", "免费WiFi"],
+        desc: "库克山村中心，性价比最佳选择。时尚现代的房间，山景视野，轻松友好的氛围。",
+        images: [
+          "https://www.hermitage.co.nz/media/1941/mt-cook-motel.jpg?anchor=center&mode=crop&width=640&height=420&rnd=133812524840000000&quality=90",
+          "https://www.hermitage.co.nz/media/1271/motel-studio-web.jpg?anchor=center&mode=crop&width=640&height=420&rnd=132284554060000000&quality=90"
+        ],
+        url: "https://www.booking.com/hotel/nz/mt-cook-lodge-motels.html",
+        booking: "https://www.booking.com/hotel/nz/mt-cook-lodge-motels.html"
+      },
+      {
+        name: "The Hermitage Hotel",
+        nameCn: "隐士酒店（传奇地标）",
+        brand: "五星地标 · 百年历史",
+        price: 540, priceRange: "NZ$389-755",
+        rmb: "¥1,710-3,320",
+        features: ["传奇酒店", "刚翻新", "景色无敌", "两个餐厅"],
+        desc: "库克山国家公园核心的传奇地标酒店，刚翻新完毕。景色绝对无敌，但价格翻倍。",
+        images: [
+          "https://www.hermitage.co.nz/media/2011/hermitage_motel-06.jpg?anchor=center&mode=crop&width=640&height=420&rnd=133821881250000000&quality=90"
+        ],
+        url: "https://www.hermitage.co.nz/",
+        booking: "https://www.booking.com/hotel/nz/the-hermitage.html"
+      }
+    ]
+  },
+  {
+    night: 7, date: "5月6日", city: "皇后镇", cityEn: "Queenstown",
+    subtitle: "第 1 晚（共住 2 晚）",
+    options: [
+      {
+        name: "Crowne Plaza Queenstown",
+        nameCn: "皇后镇皇冠假日酒店",
+        brand: "IHG 洲际集团",
+        price: 180, priceRange: "NZ$151-211",
+        rmb: "¥660-930",
+        recommended: true,
+        features: ["IHG国际连锁", "市中心", "豪华床品", "安全标准高"],
+        desc: "IHG 洲际集团旗下，皇后镇市中心，走路就到 Fergburger 和湖边。国际品牌安全标准，豪华床品。",
+        images: [],
+        url: "https://www.ihg.com/crowneplaza/hotels/us/en/queenstown/zqnbs/hoteldetail",
+        booking: "https://www.booking.com/hotel/nz/crowne-plaza-queenstown.html"
+      },
+      {
+        name: "Mercure Queenstown Resort",
+        nameCn: "皇后镇美居度假酒店",
+        brand: "Accor 雅高集团",
+        price: 190, priceRange: "NZ$114-266",
+        rmb: "¥500-1,170",
+        features: ["雪山湖景", "泳池温泉", "健身房", "餐厅"],
+        desc: "可看 Remarkables 雪山和瓦卡蒂普湖，有泳池、温泉、健身房和全景餐厅。",
+        images: [],
+        url: "https://all.accor.com/hotel/5891/index.en.shtml",
+        booking: "https://www.booking.com/hotel/nz/mercure-queenstown-resort.html"
+      }
+    ]
+  },
+  {
+    night: 8, date: "5月7日", city: "皇后镇", cityEn: "Queenstown",
+    subtitle: "第 2 晚（米尔福德峡湾日游后回来）",
+    linkedTo: 7,
+    options: []
+  },
+  {
+    night: 9, date: "5月8日", city: "瓦纳卡", cityEn: "Wanaka",
+    options: [
+      {
+        name: "Wanaka Hotel",
+        nameCn: "瓦纳卡酒店",
+        brand: "当地老牌 · 706+评价",
+        price: 128, priceRange: "NZ$105-151",
+        rmb: "¥460-660",
+        recommended: true,
+        features: ["镇中心", "步行到湖", "餐厅酒吧", "性价比高"],
+        desc: "瓦纳卡镇中心，步行 1 分钟到湖。706+ 条评价，有餐厅和酒吧，性价比超高。",
+        images: [],
+        url: "https://wanakahotel.co.nz/",
+        booking: "https://www.booking.com/hotel/nz/wanaka.html"
+      },
+      {
+        name: "Oakridge Resort (Mercure)",
+        nameCn: "橡树岭度假村",
+        brand: "Accor 美居品牌",
+        price: 253, priceRange: "NZ$128-379",
+        rmb: "¥560-1,670",
+        features: ["度假村", "湖区", "Accor品牌", "设施全"],
+        desc: "Accor 美居品牌度假村，湖区位置，设施齐全，度假氛围好。",
+        images: [],
+        url: "https://all.accor.com/hotel/9498/index.en.shtml",
+        booking: "https://www.booking.com/hotel/nz/oakridge-resort.html"
+      }
+    ]
+  }
+];
+
+// Selection state
+let selections = {};
+try {
+  const saved = localStorage.getItem('nz_hotel_selections');
+  if (saved) selections = JSON.parse(saved);
+} catch(e) {}
+
+function saveSelections() {
+  localStorage.setItem('nz_hotel_selections', JSON.stringify(selections));
+  updateProgress();
+}
+
+function selectHotel(night, optionIdx) {
+  if (selections[night] === optionIdx) {
+    delete selections[night];
+  } else {
+    selections[night] = optionIdx;
+  }
+  // If night 7 is linked to night 8
+  if (night === 7) {
+    if (selections[7] !== undefined) selections[8] = selections[7];
+    else delete selections[8];
+  }
+  saveSelections();
+  renderAll();
+}
+
+function updateProgress() {
+  const total = 9;
+  const selected = Object.keys(selections).length;
+  const pct = Math.round((selected / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressCount').textContent = `已选 ${selected}/${total} 晚`;
+  document.getElementById('floatCount').textContent = selected;
+
+  let totalCost = 0;
+  HOTELS.forEach(h => {
+    if (h.linkedTo) return;
+    const sel = selections[h.night];
+    if (sel !== undefined && h.options[sel]) {
+      const nights = h.night === 7 ? 2 : 1;
+      totalCost += h.options[sel].price * 2 * nights;
+    }
+  });
+  document.getElementById('floatTotal').textContent = 'NZ$' + totalCost.toLocaleString();
+}
+
+function renderAll() {
+  const container = document.getElementById('hotelSections');
+  container.innerHTML = '';
+
+  HOTELS.forEach(h => {
+    const section = document.createElement('div');
+    section.className = 'night-section';
+
+    // Night header
+    let titleExtra = h.subtitle ? `<span style="font-size:13px;color:var(--text-light);margin-left:8px;">${h.subtitle}</span>` : '';
+    section.innerHTML = `
+      <div class="night-header">
+        <div class="night-badge">第${h.night}晚</div>
+        <div class="night-title">
+          <h2>${h.city} ${h.cityEn} ${titleExtra}</h2>
+          <div class="date">📅 ${h.date}</div>
+        </div>
+      </div>
+    `;
+
+    if (h.warn) {
+      section.innerHTML += `<div class="warning-box">${h.warn}</div>`;
+    }
+
+    // Linked night (same hotel as previous)
+    if (h.linkedTo) {
+      const linkedSel = selections[h.linkedTo];
+      const linkedHotel = linkedSel !== undefined ? HOTELS.find(x => x.night === h.linkedTo).options[linkedSel] : null;
+      section.innerHTML += `
+        <div style="background:var(--primary-light);padding:16px;border-radius:12px;text-align:center;font-size:14px;">
+          ${linkedHotel
+            ? `✅ 和第 ${h.linkedTo} 晚同一家：<strong>${linkedHotel.name}</strong>（连住 2 晚）`
+            : '⬆️ 和第 7 晚住同一家酒店（选了第 7 晚自动同步）'
+          }
+        </div>
+      `;
+      container.appendChild(section);
+      return;
+    }
+
+    // Hotel cards
+    h.options.forEach((opt, idx) => {
+      const isSelected = selections[h.night] === idx;
+      const card = document.createElement('div');
+      card.className = `hotel-card ${isSelected ? 'selected' : ''} ${idx > 0 ? 'alt' : ''}`;
+
+      // Images
+      let imageHTML = '';
+      if (opt.images && opt.images.length > 0) {
+        const imgs = opt.images.map(src => `<img src="${src}" alt="${opt.name}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=placeholder>🏨</div>'">`).join('');
+        imageHTML = `<div class="hotel-images">${imgs}</div>`;
+      } else {
+        const cityEmojis = {'奥克兰':'🌆','罗托鲁瓦':'♨️','陶波':'🌊','惠灵顿':'⚡','蒂卡波湖':'⭐','库克山':'🏔️','皇后镇':'🎿','瓦纳卡':'🏞️'};
+        const emoji = cityEmojis[h.city] || '🏨';
+        imageHTML = `<div class="hotel-images"><div class="placeholder">${emoji}</div></div>`;
+      }
+
+      const featHTML = opt.features.map((f, i) =>
+        `<span class="feature-tag ${i === 0 ? 'highlight' : ''}">${f}</span>`
+      ).join('');
+
+      const tag = opt.recommended
+        ? '<span class="hotel-badge-tag">⭐ 推荐</span>'
+        : '<span class="hotel-badge-tag alt-tag">备选</span>';
+
+      card.innerHTML = `
+        ${imageHTML}
+        <div class="hotel-info">
+          <div class="hotel-name-row">
+            <div class="hotel-name">${opt.name} ${tag}</div>
+          </div>
+          <div style="font-size:13px;color:var(--text-light);margin-bottom:2px;">${opt.nameCn}</div>
+          <div class="hotel-brand">${opt.brand}</div>
+          <div class="hotel-price">
+            ${opt.priceRange} <span class="unit">/间/晚</span>
+            <span class="rmb">≈ ${opt.rmb}</span>
+          </div>
+          <div class="hotel-features">${featHTML}</div>
+          <div class="hotel-desc">${opt.desc}</div>
+          <div class="hotel-links">
+            <a href="${opt.url}" target="_blank" class="hotel-link">🔗 官网</a>
+            <a href="${opt.booking}" target="_blank" class="hotel-link">📖 Booking</a>
+          </div>
+        </div>
+        <button class="select-btn" onclick="event.stopPropagation(); selectHotel(${h.night}, ${idx})">
+          ${isSelected ? '✅ 已选择' : '👆 选这家'}
+        </button>
+      `;
+
+      card.addEventListener('click', () => selectHotel(h.night, idx));
+      section.appendChild(card);
+    });
+
+    container.appendChild(section);
+  });
+
+  updateProgress();
+}
+
+function showSummary() {
+  const modal = document.getElementById('summaryModal');
+  const list = document.getElementById('summaryList');
+  list.innerHTML = '';
+  let total = 0;
+
+  HOTELS.forEach(h => {
+    const sel = selections[h.night];
+    const item = document.createElement('div');
+    item.className = 'summary-item';
+
+    if (h.linkedTo) {
+      const linkedSel = selections[h.linkedTo];
+      const hotel = linkedSel !== undefined ? HOTELS.find(x => x.night === h.linkedTo).options[linkedSel] : null;
+      item.innerHTML = `
+        <span class="night-label">第${h.night}晚 · ${h.city}</span>
+        <span class="hotel-choice">${hotel ? '↕️ 同上' : '<span class="not-selected">未选</span>'}</span>
+      `;
+    } else if (sel !== undefined && h.options[sel]) {
+      const opt = h.options[sel];
+      const nights = h.night === 7 ? 2 : 1;
+      total += opt.price * 2 * nights;
+      item.innerHTML = `
+        <span class="night-label">第${h.night}晚 · ${h.city}</span>
+        <span class="hotel-choice">${opt.name}<br><small style="color:var(--primary)">${opt.priceRange}/间</small></span>
+      `;
+    } else {
+      item.innerHTML = `
+        <span class="night-label">第${h.night}晚 · ${h.city}</span>
+        <span class="not-selected">未选择</span>
+      `;
+    }
+    list.appendChild(item);
+  });
+
+  document.getElementById('summaryTotal').textContent = 'NZ$' + total.toLocaleString();
+  document.getElementById('summaryPerPerson').textContent = 'NZ$' + Math.round(total / 4).toLocaleString() + ' (≈¥' + Math.round(total / 4 * 4.4).toLocaleString() + ')';
+  modal.classList.add('show');
+}
+
+function hideSummary() {
+  document.getElementById('summaryModal').classList.remove('show');
+}
+
+function copySummary() {
+  let text = '🏨 新西兰住宿方案\n4/30-5/9 · 4人2间房\n\n';
+  let total = 0;
+
+  HOTELS.forEach(h => {
+    const sel = selections[h.night];
+    if (h.linkedTo) {
+      const linkedSel = selections[h.linkedTo];
+      const hotel = linkedSel !== undefined ? HOTELS.find(x => x.night === h.linkedTo).options[linkedSel] : null;
+      text += `第${h.night}晚 ${h.date} ${h.city}：${hotel ? '同上 ↕️' : '未选'}\n`;
+    } else if (sel !== undefined && h.options[sel]) {
+      const opt = h.options[sel];
+      const nights = h.night === 7 ? 2 : 1;
+      total += opt.price * 2 * nights;
+      text += `第${h.night}晚 ${h.date} ${h.city}：${opt.name} (${opt.priceRange}/间)\n`;
+    } else {
+      text += `第${h.night}晚 ${h.date} ${h.city}：未选\n`;
+    }
+  });
+
+  text += `\n💰 总价（2间×9晚）：NZ$${total.toLocaleString()}`;
+  text += `\n👤 人均：NZ$${Math.round(total/4).toLocaleString()} ≈ ¥${Math.round(total/4*4.4).toLocaleString()}`;
+
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = '✅ 已复制！发给姐妹们吧';
+      setTimeout(() => { btn.textContent = '📋 复制方案发给大家'; }, 2000);
+    });
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✅ 已复制！';
+    setTimeout(() => { btn.textContent = '📋 复制方案发给大家'; }, 2000);
+  }
+}
+
+// Close modal on backdrop click
+document.getElementById('summaryModal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('summaryModal')) hideSummary();
+});
+
+// Initial render
+renderAll();
+</script>
+</body>
+</html>
